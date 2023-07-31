@@ -31,3 +31,14 @@ def download_list(link, name):
             print(yt)
             download(yt, name)
         print(f"Downloaded {i+1}/{playlistObject.length-start-1}")
+
+class Downloader:
+    def __init__(self):
+        self.ids = set()
+        self.obiects = set()
+
+    def add_videos(self, *args):
+        new = set(args).difference_update(self.ids)
+        new_videos = {Youtube(video_link(x)).streams.get_highest_resolution() for x in new}
+        self.ids.update(new)
+        self.obiects.update(new_videos)
