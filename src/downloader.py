@@ -1,6 +1,7 @@
+import os
 import shutil
 from pytube import YouTube, Playlist
-from src import get_main_folder, detect_new, url_parser, outputfolder
+from src import get_main_folder, detect_new, url_parser, outputfolder, video_url, playlist_url
 
 def download(link, output=None):
     main_folder = get_main_folder()
@@ -42,3 +43,14 @@ class Downloader:
         new_videos = {Youtube(video_link(x)).streams.get_highest_resolution() for x in new}
         self.ids.update(new)
         self.obiects.update(new_videos)
+
+def download_playlist(_id, data):
+    play = Playlist(playlist_url(_id))
+    if data['name'] is None:
+        data['name'] = play.title
+    output_path = os.path.join("output", data['name'])
+    with outputfolder(output_path):
+        for video in play.videos[data['index']:len(play.videos)]:
+            video.streams.get_highest_resolution().download()
+            data['index'] += 1
+    return data

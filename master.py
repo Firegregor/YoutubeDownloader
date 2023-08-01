@@ -1,4 +1,4 @@
-from src import YoutubeDownloader
+from src import YoutubeDownloader, JsonLogger
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -13,7 +13,8 @@ links = [ "https://www.youtube.com/watch?v=434tljD-5C8&t=48s",
     "https://www.youtube.com/watch?v=Q4I_Ft-VLAg&t=2s"
         ]
 
-you = YoutubeDownloader()
+data = JsonLogger(json_path="output/incremental.json")
+you = YoutubeDownloader(data = data)
 you.add_multiple_links(*links)
 you.print_objects()
-you.download_from_link(links[0])
+you.download_playlist()

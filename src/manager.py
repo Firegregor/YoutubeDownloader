@@ -1,11 +1,16 @@
 from src import *
+from pytube import Playlist
 import logging
 
 class YoutubeDownloader:
 
-    def __init__(self, incremental="output/incremental.json"):
+    def __init__(self, data=None, incremental="output/incremental.json"):
         logging.debug("YoutubeDownloader Initialized")
-        self.ids = JsonLogger(json_path=incremental)
+        if data is None:
+            self.data = JsonLogger(json_path=incremental)
+        else:
+            self.data = data
+        self.ids = {'v':self.data['v'], 'list':self.data['list']}
         self.videos = set()
 
     def process_link(self, link):
@@ -17,10 +22,11 @@ class YoutubeDownloader:
         return ids
 
     def process_multiple_links(self,*args):
-        tmp = [self.process_link(link) for link in args]
-        logging.debug(f"{type(self)} Process multiple links - {tmp}")
-        vid = [link['v'] for link in tmp]
-        lis = [link['list'] for link in tmp]
+        with self.data.suspend_writing():
+            tmp = [self.process_link(link) for link in args]
+            logging.debug(f"{type(self)} Process multiple links - {tmp}")
+            vid = [link['v'] for link in tmp]
+            lis = [link['list'] for link in tmp]
         return {'v':vid, 'list':lis}
 
     def add_multiple_links(self,*args):
@@ -42,3 +48,18 @@ class YoutubeDownloader:
         self.process_link(link)
         download(link, 'output')
 
+    def download_playlist(self, playlist=None):
+        if playlist is None:
+            download_list = self.ids['list']
+        else:
+            download_list = [playlist]
+        with self.data.suspend_writing():
+            for _id in download_list:
+                if _id not in self.data["downloaded"]["playlist"]:
+                    data = {
+                            "name": None,
+                            "index":0
+                            }
+                else:
+                    data = self.data["downloaded"]["playlist"][_id]
+                self.data["downloaded"]["playlist"][_id] = download_playlist(_id,data)

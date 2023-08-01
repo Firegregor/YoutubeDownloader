@@ -1,5 +1,6 @@
 import os
 import shutil
+import logging
 from functools import wraps
 from contextlib import contextmanager
 
@@ -26,9 +27,13 @@ def output_set(path="output", verbose=False):
 @contextmanager
 def outputfolder(path):
     main_folder = get_main_folder()
+    if not os.path.exists(path):
+        os.makedirs(path)
+    logging.debug(f"Outputfolder set output to {path}")
     yield
     for new in detect_new(main_folder):
         shutil.move(new,f"{path}/{new}")
+        logging.debug(f"Outputfolder moved {new} to {path}")
 
 def url_parser(url):
     args = url.split("?")[1]
@@ -38,4 +43,10 @@ def url_parser(url):
         out[k] = v
     return out
 
+
+def video_url(_id):
+    return f"https://www.youtube.com/watch?v={_id}"
+
+def playlist_url(_id):
+    return f"https://www.youtube.com/playlist?list={_id}"
 
