@@ -1,5 +1,5 @@
 from src import *
-from pytube import Playlist
+from pytube import Playlist, YouTube
 import logging
 
 class YoutubeDownloader:
@@ -43,10 +43,22 @@ class YoutubeDownloader:
             print(k)
             print(v)
 
-    def download_from_link(self, link):
+    def download_all_videos(self, output=None):
+        if output is None:
+            output = './output'
+        logging.debug(f'Downloading all videos to {output}')
+        logging.debug(f'videos: {self.ids}')
+        with self.data.suspend_writing():
+            for _id in self.ids['v']:
+                logging.debug(f"<download_all_videos> Downloading {_id}")
+                play = YouTube(video_url(_id))
+                download_video(play, output)
+
+    def download_from_link(self, link, output="./output"):
         logging.debug(f"{type(self)} Download link - {link}")
         self.process_link(link)
-        download(link, 'output')
+        play = YouTube(link)
+        download_video(play, output)
 
     def download_playlist(self, playlist=None):
         if playlist is None:
@@ -58,8 +70,10 @@ class YoutubeDownloader:
                 if _id not in self.data["downloaded"]["playlist"]:
                     data = {
                             "name": None,
-                            "index":0
+                            "index":0,
+                            "ids":[]
                             }
                 else:
                     data = self.data["downloaded"]["playlist"][_id]
-                self.data["downloaded"]["playlist"][_id] = download_playlist(_id,data)
+                play = Playlist(playlist_url(_id))
+                self.data["downloaded"]["playlist"][_id] = download_playlist(play,data)

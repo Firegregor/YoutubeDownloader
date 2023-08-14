@@ -8,7 +8,6 @@ class JsonLogger(dict):
 
     def __init__(self, *args,json_path=None, **kw):
         super(JsonLogger,self).__init__(*args, **kw)
-        self.itemlist = super(JsonLogger,self).keys()
         self.__path = json_path
         self.__save_on_write = 1
         self['v'] = []
@@ -24,8 +23,9 @@ class JsonLogger(dict):
     def __iter__(self):
         return iter(self.itemlist)
 
-    def keys(self):
-        return self.itemlist
+    @property
+    def item_list(self):
+        return super(JsonLogger,self).keys()
 
     def values(self):
         return [self[key] for key in self]  

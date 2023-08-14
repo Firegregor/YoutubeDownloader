@@ -1,9 +1,10 @@
 import os
 import shutil
+import logging
 from pytube import YouTube, Playlist
 from src import get_main_folder, detect_new, url_parser, outputfolder, video_url, playlist_url
 
-def download(link, output=None):
+def download_from_link(link, output=None):
     main_folder = get_main_folder()
     youtubeObject = YouTube(link)
     youtubeObject = youtubeObject.streams.get_highest_resolution()
@@ -33,24 +34,20 @@ def download_list(link, name):
             download(yt, name)
         print(f"Downloaded {i+1}/{playlistObject.length-start-1}")
 
-class Downloader:
-    def __init__(self):
-        self.ids = set()
-        self.obiects = set()
-
-    def add_videos(self, *args):
-        new = set(args).difference_update(self.ids)
-        new_videos = {Youtube(video_link(x)).streams.get_highest_resolution() for x in new}
-        self.ids.update(new)
-        self.obiects.update(new_videos)
-
-def download_playlist(_id, data):
-    play = Playlist(playlist_url(_id))
+def download_playlist(play, data):
     if data['name'] is None:
         data['name'] = play.title
     output_path = os.path.join("output", data['name'])
-    with outputfolder(output_path):
-        for video in play.videos[data['index']:len(play.videos)]:
-            video.streams.get_highest_resolution().download()
-            data['index'] += 1
+    logging.info(f"Download playlist {play.title} to {output_path}")
+    logging.info(f"Downloaded {data['index']} / {len(play.videos)}")
+    for video in play.videos[data['index']:len(play.videos)]:
+        download_video(video, output_path)
+        data['index'] += 1
+        logging.info(f"Downloaded {data['index']} / {len(play.videos)}")
     return data
+
+def download_video(youtube_obiect, output):
+    logging.info(f"Download video {youtube_obiect.title} to {output}")
+    with outputfolder(output):
+        tmp = youtube_obiect.streams.get_highest_resolution()
+        tmp.download()
